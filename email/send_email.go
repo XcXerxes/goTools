@@ -1,0 +1,48 @@
+package email
+
+import (
+	"encoding/base64"
+	"fmt"
+	"net/mail"
+	"net/smtp"
+)
+
+func SendEmail()  {
+	b64 := base64.NewEncoding("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/")
+	host := "smtp.mail.com"
+	email := "mail@mail.com"
+	password := "password"
+	toEmail := "mail2@mail.com"
+	from := mail.Address{"发送人", email}
+	to := mail.Address{"接收人", toEmail}
+	header := make(map[string]string)
+	header["From"] = from.String()
+	header["To"] = to.String()
+	header["Subject"] = fmt.Sprintf("=?UTF-8?B?%s?=", b64.EncodeToString([]byte("邮件标题2")))
+	header["MIME-Version"] = "1.0"
+	header["Content-Type"] = "text/html"
+	header["Content-Transfer-Encoding"] = "base64"
+	body := "我是一封电子邮件!golang发出.";
+	message := ""
+	for k, v := range header {
+		message += fmt.Sprintf("%s: %s\r\n", k, v)
+	}
+	message += "\r\n" + b64.EncodeToString([]byte(body))
+	auth := smtp.PlainAuth(
+		"",
+		email,
+		password,
+		host,
+	)
+	// 发送邮件
+	err := smtp.SendMail(
+		host+":25",
+		auth,
+		email,
+		[]string{to.Address},
+		[]byte(message),
+	)
+	if err != nil {
+		panic(err)
+	}
+}
